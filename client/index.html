@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Stock Dashboard</title>
+    <style>
+        body {
+            font-family: Segoe UI;
+            background: #0f172a;
+            color: white;
+            margin: 0;
+            padding: 40px;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+        /* GRID */
+        #container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 28px;
+        }
+        /* CARD */
+        .card {
+            background: #1e293b;
+            padding: 35px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+            text-align: center;
+        }
+        /* STOCK NAME */
+        .stock {
+            font-size: 20px;
+            margin-bottom: 12px;
+            opacity: 0.8;
+        }
+        /* PRICE ROW */
+        .price-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+        }
+        /* PRICE */
+        .price {
+            font-size: 42px;
+            font-weight: bold;
+            color: white;
+        }
+        /* COLOR STATES */
+        .price-up {
+            color: #22c55e;
+        }
+        .price-down {
+            color: #ef4444;
+        }
+        /* ICON */
+        .trend {
+            width: 28px;
+            height: 28px;
+        }
+        .status {
+            text-align: center;
+            margin-bottom: 20px;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+    <h1>Live Stock Dashboard</h1>
+    <div class="status" id="status">Connecting...</div>
+    <div id="container">
+        <div class="card" id="AAPL">
+            <div class="stock">AAPL</div>
+            <div class="price-row">
+                <div class="price">--</div><img class="trend">
+            </div>
+        </div>
+        <div class="card" id="GOOG">
+            <div class="stock">GOOG</div>
+            <div class="price-row">
+                <div class="price">--</div><img class="trend">
+            </div>
+        </div>
+        <div class="card" id="TSLA">
+            <div class="stock">TSLA</div>
+            <div class="price-row">
+                <div class="price">--</div><img class="trend">
+            </div>
+        </div>
+        <div class="card" id="MSFT">
+            <div class="stock">MSFT</div>
+            <div class="price-row">
+                <div class="price">--</div><img class="trend">
+            </div>
+        </div>
+        <div class="card" id="AMZN">
+            <div class="stock">AMZN</div>
+            <div class="price-row">
+                <div class="price">--</div><img class="trend">
+            </div>
+        </div>
+        <div class="card" id="NVDA">
+            <div class="stock">NVDA</div>
+            <div class="price-row">
+                <div class="price">--</div><img class="trend">
+            </div>
+        </div>
+        <div class="card" id="META">
+            <div class="stock">META</div>
+            <div class="price-row">
+                <div class="price">--</div><img class="trend">
+            </div>
+        </div>
+        <div class="card" id="NFLX">
+            <div class="stock">NFLX</div>
+            <div class="price-row">
+                <div class="price">--</div><img class="trend">
+            </div>
+        </div>
+        <div class="card" id="INTC">
+            <div class="stock">INTC</div>
+            <div class="price-row">
+                <div class="price">--</div><img class="trend">
+            </div>
+        </div>
+        <div class="card" id="AMD">
+            <div class="stock">AMD</div>
+            <div class="price-row">
+                <div class="price">--</div><img class="trend">
+            </div>
+        </div>
+        <div class="card" id="IBM">
+            <div class="stock">IBM</div>
+            <div class="price-row">
+                <div class="price">--</div><img class="trend">
+            </div>
+        </div>
+        <div class="card" id="ORCL">
+            <div class="stock">ORCL</div>
+            <div class="price-row">
+                <div class="price">--</div><img class="trend">
+            </div>
+        </div>
+    </div>
+    <script>
+        const ws = new WebSocket("ws://localhost:8080/?token=stock123");
+        const status = document.getElementById("status");
+        const lastPrices = {};
+        ws.onopen = () => status.textContent = "Connected";
+        ws.onclose = () => status.textContent = "Disconnected";
+        ws.onmessage = ({ data }) => {
+            const [stock, priceStr] = data.trim().split(" ");
+            const price = parseFloat(priceStr);
+            const card = document.getElementById(stock);
+            if (!card) return;
+            const priceDiv = card.querySelector(".price");
+            const icon = card.querySelector(".trend");
+            const prev = lastPrices[stock];
+            if (prev !== undefined) {
+                const up = price > prev;
+                icon.src = up ? "up.png" : "down.png";
+                priceDiv.classList.toggle("price-up", up);
+                priceDiv.classList.toggle("price-down", !up);
+            }
+            priceDiv.textContent = price.toFixed(2);
+            lastPrices[stock] = price;
+        };
+    </script>
+</body>
+</html>
