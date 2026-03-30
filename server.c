@@ -108,7 +108,6 @@ void handle_history_request(SSL *ssl, char *buffer)
     strcat(json, "]");
     sqlite3_finalize(stmt);
 
-    // 🔥 IMPORTANT: proper HTTP headers
     char response[2048];
     sprintf(response,
             "HTTP/1.1 200 OK\r\n"
@@ -137,7 +136,6 @@ void websocket_handshake(SSL *ssl)
     {
         handle_history_request(ssl, buffer);
 
-        // ✅ CRITICAL FIX
         SSL_shutdown(ssl);
         SSL_free(ssl);
 
@@ -316,14 +314,12 @@ int main()
 
         websocket_handshake(ssl);
 
-        // 🔥 If SSL already closed (history request), skip everything
         if (SSL_get_shutdown(ssl) != 0)
         {
             close(client_sock);
             continue;
         }
 
-        // ✅ Only WebSocket clients reach here
         pthread_mutex_lock(&lock);
         if (client_count < MAX_CLIENTS)
             clients[client_count++] = ssl;
