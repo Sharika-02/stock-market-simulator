@@ -1,171 +1,297 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Stock Dashboard</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <style>
         body {
             font-family: Segoe UI;
             background: #0f172a;
             color: white;
-            margin: 0;
             padding: 40px;
+            transition: 0.3s;
         }
+
+        body.light {
+            background: #f1f5f9;
+            color: #111;
+        }
+
         h1 {
             text-align: center;
-            margin-bottom: 35px;
         }
-        /* GRID */
+
+        .toggle {
+            margin: 10px auto;
+            width: 60px;
+            height: 30px;
+            background: #334155;
+            border-radius: 30px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .toggle::before {
+            content: "";
+            width: 26px;
+            height: 26px;
+            background: white;
+            border-radius: 50%;
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            transition: 0.3s;
+        }
+
+        body.light .toggle {
+            background: #22c55e;
+        }
+
+        body.light .toggle::before {
+            transform: translateX(30px);
+        }
+
         #container {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 28px;
+            gap: 25px;
         }
-        /* CARD */
+
         .card {
             background: #1e293b;
-            padding: 35px;
-            border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+            padding: 30px;
+            border-radius: 12px;
             text-align: center;
+            cursor: pointer;
         }
-        /* STOCK NAME */
-        .stock {
-            font-size: 20px;
-            margin-bottom: 12px;
-            opacity: 0.8;
+
+        body.light .card {
+            background: white;
         }
-        /* PRICE ROW */
-        .price-row {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 12px;
-        }
-        /* PRICE */
-        .price {
-            font-size: 42px;
-            font-weight: bold;
-            color: white;
-        }
-        /* COLOR STATES */
+
         .price-up {
-            color: #22c55e;
+            color: green;
         }
+
         .price-down {
-            color: #ef4444;
+            color: red;
         }
-        /* ICON */
+
         .trend {
-            width: 28px;
-            height: 28px;
+            display: none;
+            width: 20px;
         }
-        .status {
-            text-align: center;
-            margin-bottom: 20px;
-            opacity: 0.7;
+
+        /* MODAL */
+        #modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+        }
+
+        #modalContent {
+            background: white;
+            width: 600px;
+            margin: 100px auto;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        #modal {
+            backdrop-filter: blur(6px);
         }
     </style>
 </head>
+
 <body>
-    <h1>Live Stock Dashboard</h1>
-    <div class="status" id="status">Connecting...</div>
-    <div id="container">
-        <div class="card" id="AAPL">
-            <div class="stock">AAPL</div>
-            <div class="price-row">
-                <div class="price">--</div><img class="trend">
-            </div>
-        </div>
-        <div class="card" id="GOOG">
-            <div class="stock">GOOG</div>
-            <div class="price-row">
-                <div class="price">--</div><img class="trend">
-            </div>
-        </div>
-        <div class="card" id="TSLA">
-            <div class="stock">TSLA</div>
-            <div class="price-row">
-                <div class="price">--</div><img class="trend">
-            </div>
-        </div>
-        <div class="card" id="MSFT">
-            <div class="stock">MSFT</div>
-            <div class="price-row">
-                <div class="price">--</div><img class="trend">
-            </div>
-        </div>
-        <div class="card" id="AMZN">
-            <div class="stock">AMZN</div>
-            <div class="price-row">
-                <div class="price">--</div><img class="trend">
-            </div>
-        </div>
-        <div class="card" id="NVDA">
-            <div class="stock">NVDA</div>
-            <div class="price-row">
-                <div class="price">--</div><img class="trend">
-            </div>
-        </div>
-        <div class="card" id="META">
-            <div class="stock">META</div>
-            <div class="price-row">
-                <div class="price">--</div><img class="trend">
-            </div>
-        </div>
-        <div class="card" id="NFLX">
-            <div class="stock">NFLX</div>
-            <div class="price-row">
-                <div class="price">--</div><img class="trend">
-            </div>
-        </div>
-        <div class="card" id="INTC">
-            <div class="stock">INTC</div>
-            <div class="price-row">
-                <div class="price">--</div><img class="trend">
-            </div>
-        </div>
-        <div class="card" id="AMD">
-            <div class="stock">AMD</div>
-            <div class="price-row">
-                <div class="price">--</div><img class="trend">
-            </div>
-        </div>
-        <div class="card" id="IBM">
-            <div class="stock">IBM</div>
-            <div class="price-row">
-                <div class="price">--</div><img class="trend">
-            </div>
-        </div>
-        <div class="card" id="ORCL">
-            <div class="stock">ORCL</div>
-            <div class="price-row">
-                <div class="price">--</div><img class="trend">
-            </div>
+
+    <h1>Stock Dashboard</h1>
+
+    <div class="toggle" onclick="toggleTheme()"></div>
+
+    <div id="container"></div>
+
+    <!-- GRAPH MODAL -->
+    <div id="modal" style="
+    display:none;
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:rgba(0,0,0,0.6);
+    z-index:1000;
+">
+
+        <div style="
+    background:#0f172a;
+    width:720px;
+    margin:80px auto;
+    padding:25px;
+    border-radius:16px;
+    position:relative;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.6);
+">
+
+            <h2 id="chartTitle" style="
+        margin-bottom:15px;
+        font-weight:500;
+        color:#e2e8f0;
+        letter-spacing:0.5px;
+    "></h2>
+
+            <canvas id="chart"></canvas>
+
+            <button onclick="closeModal()" style="
+        margin-top:20px;
+        padding:8px 18px;
+        border:none;
+        background:#334155;
+        color:white;
+        border-radius:8px;
+        cursor:pointer;
+    ">
+                Close
+            </button>
+
         </div>
     </div>
     <script>
-        const ws = new WebSocket("ws://localhost:8080/?token=stock123");
-        const status = document.getElementById("status");
+        const stocks = ["AAPL", "GOOG", "TSLA", "MSFT", "AMZN", "NVDA",
+            "META", "NFLX", "INTC", "AMD", "IBM", "ORCL"];
+
+        const container = document.getElementById("container");
+
+        stocks.forEach(s => {
+            container.innerHTML += `
+        <div class="card" id="${s}" onclick="openChart('${s}')">
+            <h3>${s}</h3>
+            <div class="price">--</div>
+            <img class="trend">
+        </div>`;
+        });
+
+        const ws = new WebSocket("wss://localhost:8080/?token=stock123");
+
         const lastPrices = {};
-        ws.onopen = () => status.textContent = "Connected";
-        ws.onclose = () => status.textContent = "Disconnected";
+
         ws.onmessage = ({ data }) => {
             const [stock, priceStr] = data.trim().split(" ");
             const price = parseFloat(priceStr);
+
             const card = document.getElementById(stock);
-            if (!card) return;
             const priceDiv = card.querySelector(".price");
             const icon = card.querySelector(".trend");
+
             const prev = lastPrices[stock];
+
             if (prev !== undefined) {
                 const up = price > prev;
+
+                icon.style.display = "inline";
                 icon.src = up ? "up.png" : "down.png";
+
                 priceDiv.classList.toggle("price-up", up);
                 priceDiv.classList.toggle("price-down", !up);
             }
+
             priceDiv.textContent = price.toFixed(2);
             lastPrices[stock] = price;
         };
+
+        let chart;
+
+        function openChart(symbol) {
+            console.log("CLICKED", symbol);
+
+            // open modal
+            document.getElementById("modal").style.display = "block";
+
+            // set title
+            document.getElementById("chartTitle").textContent = symbol + " Price History";
+
+            fetch(`https://localhost:8080/history?symbol=${symbol}`)
+                .then(res => res.json())
+                .then(data => {
+                    console.log("DATA:", data);
+
+                    const canvas = document.getElementById("chart");
+
+                    // destroy old chart
+                    if (chart) {
+                        chart.destroy();
+                        chart = null;
+                    }
+
+                    const ctx = canvas.getContext("2d");
+
+                    // 🔥 gradient fill
+                    const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+                    gradient.addColorStop(0, "rgba(34,197,94,0.4)");
+                    gradient.addColorStop(1, "rgba(34,197,94,0)");
+
+                    chart = new Chart(ctx, {
+                        type: "line",
+                        data: {
+                            labels: data.map((_, i) => i),
+                            datasets: [{
+                                label: symbol,
+                                data: data.reverse(),
+                                borderColor: "#22c55e",
+                                backgroundColor: gradient,
+                                fill: true,
+                                tension: 0.4,
+                                pointRadius: 0,
+                                borderWidth: 2
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    mode: "index",
+                                    intersect: false,
+                                    backgroundColor: "#1e293b",
+                                    titleColor: "#fff",
+                                    bodyColor: "#fff"
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    display: false
+                                },
+                                y: {
+                                    grid: {
+                                        color: "rgba(255,255,255,0.05)"
+                                    },
+                                    ticks: {
+                                        color: "#94a3b8"
+                                    }
+                                }
+                            }
+                        }
+                    });
+                })
+                .catch(err => console.log("ERROR:", err));
+        }
+
+        function closeModal() {
+            document.getElementById("modal").style.display = "none";
+        }
+
+        function toggleTheme() {
+            document.body.classList.toggle("light");
+        }
     </script>
+
 </body>
+
 </html>
